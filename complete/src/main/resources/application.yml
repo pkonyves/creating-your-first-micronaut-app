@@ -1,3 +1,12 @@
 micronaut:
+  server:
+    netty:
+      worker:
+        threads: 3
+      parent:
+        threads: 3
+  http:
+    client:
+      connect-timeout: 4
   application:
     name: examples

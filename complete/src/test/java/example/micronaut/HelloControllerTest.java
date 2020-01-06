@@ -1,29 +1,59 @@
 package example.micronaut;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.ReadTimeoutException;
 import io.micronaut.test.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
+import java.util.Set;
 
-@MicronautTest // <1>
+@MicronautTest
 public class HelloControllerTest {
+
+    static {
+        System.setProperty("io.netty.eventLoopThreads", String.valueOf(3));
+    }
 
     @Inject
     @Client("/")
-    RxHttpClient client; // <2>
+    RxHttpClient client;
 
     @Test
     public void testHello() {
-        HttpRequest<String> request = HttpRequest.GET("/hello"); // <3>
-        String body = client.toBlocking().retrieve(request);
+        System.out.println("call blocking");
+        HttpRequest<String> request = HttpRequest.GET("/blocking");
 
-        assertNotNull(body);
-        assertEquals("Hello World", body);
+        try {
+            String body = client.toBlocking().retrieve(request);
+        }
+        catch (ReadTimeoutException e) {
+            System.out.println("/blocking call timeout: ok");
+        }
+
+        int nioThreadCount = getNumOfNioThreads();
+        for (int i = 0; i < 30; i++) {
+            System.out.println("call ok " + i);
+            HttpRequest<String> reqOk1 = HttpRequest.GET("/ok");
+            client.toBlocking().retrieve(reqOk1);
+        }
+
+        System.out.println("everything ok");
+
+    }
+
+    private int getNumOfNioThreads() {
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        int nioThreadNum = 0;
+        for (Thread t : threadSet){
+            if (t.getName().startsWith("nioEventLoopGroup")) {
+                nioThreadNum++;
+            }
+        }
+
+        return nioThreadNum;
     }
 }

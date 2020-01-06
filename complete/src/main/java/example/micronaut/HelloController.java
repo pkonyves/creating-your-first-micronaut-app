@@ -5,11 +5,24 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Produces;
 
-@Controller("/hello") // <1>
+@Controller("/")
 public class HelloController {
-    @Get // <2>
-    @Produces(MediaType.TEXT_PLAIN) // <3>
-    public String index() {
-        return "Hello World"; // <4>
+
+    @Get("/ok")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String ok() {
+        return "ok";
+    }
+
+    @Get("/blocking")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String blocking() {
+        try {
+            Thread.sleep(10*60*1000);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return "blocking";
     }
 }
