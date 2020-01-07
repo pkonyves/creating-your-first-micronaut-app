@@ -5,6 +5,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.ReadTimeoutException;
+import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.test.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
 
@@ -14,35 +15,60 @@ import java.util.Set;
 @MicronautTest
 public class HelloControllerTest {
 
-    static {
-        System.setProperty("io.netty.eventLoopThreads", String.valueOf(3));
-    }
-
     @Inject
     @Client("/")
     RxHttpClient client;
 
+    @Inject
+    EmbeddedServer embeddedServer;
+
     @Test
     public void testHello() {
-        System.out.println("call blocking");
-        HttpRequest<String> request = HttpRequest.GET("/blocking");
+        int port = embeddedServer.getPort();
+        MockAuthorizationFilter.selfUrl.set("http://localhost:"+port);
 
-        try {
-            String body = client.toBlocking().retrieve(request);
+        try  {
+            System.out.println("call /call-remote blocking, this will 'suspend' a thread on the server");
+            HttpRequest<String> request = HttpRequest.GET("/call-remote");
+            client.toBlocking().retrieve(request);
         }
         catch (ReadTimeoutException e) {
-            System.out.println("/blocking call timeout: ok");
+            System.out.println("/call-remote call timeout: ok");
         }
 
-        int nioThreadCount = getNumOfNioThreads();
         for (int i = 0; i < 30; i++) {
-            System.out.println("call ok " + i);
+            System.out.println("call /ok " + i);
             HttpRequest<String> reqOk1 = HttpRequest.GET("/ok");
             client.toBlocking().retrieve(reqOk1);
         }
 
         System.out.println("everything ok");
+    }
 
+    @Test
+    public void testHell2() {
+        int port = embeddedServer.getPort();
+        MockAuthorizationFilter2.selfUrl.set("http://localhost:"+port);
+
+        /*
+        try  {
+            System.out.println("call /call-remote blocking");
+            HttpRequest<String> request = HttpRequest.GET("/call-remote");
+            client.toBlocking().retrieve(request);
+        }
+        catch (ReadTimeoutException e) {
+            System.out.println("/call-remote call timeout: ok");
+        }
+        */
+
+        int nioThreadCount = getNumOfNioThreads();
+        for (int i = 0; i < 10; i++) {
+            System.out.println("call /ok " + i);
+            HttpRequest<String> reqOk1 = HttpRequest.GET("/ok");
+            client.toBlocking().retrieve(reqOk1);
+        }
+
+        System.out.println("everything ok");
     }
 
     private int getNumOfNioThreads() {

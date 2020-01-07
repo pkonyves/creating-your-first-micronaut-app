@@ -3,10 +3,10 @@ micronaut:
     netty:
       worker:
         threads: 3
-      parent:
-        threads: 3
   http:
     client:
-      connect-timeout: 4
+      connect-timeout: 2s
+      read-timeout: 2s
+      read-idle-timeout: 2s
   application:
     name: examples

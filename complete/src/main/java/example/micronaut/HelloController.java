@@ -5,7 +5,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Produces;
 
-@Controller("/")
+@Controller
 public class HelloController {
 
     @Get("/ok")
@@ -14,15 +14,9 @@ public class HelloController {
         return "ok";
     }
 
-    @Get("/blocking")
+    @Get("/authenticate")
     @Produces(MediaType.TEXT_PLAIN)
     public String blocking() {
-        try {
-            Thread.sleep(10*60*1000);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return "blocking";
+        return "authenticate";
     }
 }
