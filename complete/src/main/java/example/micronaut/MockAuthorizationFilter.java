@@ -8,12 +8,8 @@ import io.micronaut.http.filter.FilterChain;
 import io.micronaut.http.filter.HttpFilter;
 import org.reactivestreams.Publisher;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-//@Filter("/call-remote")
+@Filter("/authenticate")
 public class MockAuthorizationFilter implements HttpFilter {
-
-    public static AtomicReference<String> selfUrl = new AtomicReference<>("");
 
     @Override
     public Publisher<? extends HttpResponse<?>> doFilter(HttpRequest<?> request, FilterChain chain) {
@@ -21,30 +17,16 @@ public class MockAuthorizationFilter implements HttpFilter {
         return chain.proceed(request);
     }
 
+    /**
+     * Mimic calling a blocking authentication service
+     * that takes long time to respond
+     */
     private void callAuthService() {
         try {
-            final int waitTime = 1000*60*15;
-            Thread.sleep(waitTime);
+            final int wait5Sec = 1000*5;
+            Thread.sleep(wait5Sec);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        /*
-        try {
-            java.net.http.HttpRequest identityRequest = null;
-            identityRequest = java.net.http.HttpRequest.newBuilder()
-                    .GET()
-                    .uri(new URI(selfUrl.get() + "/ok"))
-                    .build();
-
-        HttpClient httpClient = HttpClient.newHttpClient();
-        java.net.http.HttpResponse<String> response = httpClient.send(identityRequest, java.net.http.HttpResponse.BodyHandlers.ofString());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-         */
     }
 }
